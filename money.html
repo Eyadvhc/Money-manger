@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدير الأموال والدفتر الذكي - دولار، ريال، جنيه</title>
+    <!-- خط القاهرة وزخارف الأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-amber: #f59e0b;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 5px;
+        }
+
+        /* شريط تحديث أسعار الصرف */
+        .rate-bar {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .rate-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+            display: inline-block;
+        }
+
+        /* شبكة الكروت والإحصائيات */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .value-blue { color: var(--accent-blue); }
+        .value-purple { color: var(--accent-purple); }
+        .value-amber { color: var(--accent-amber); }
+        .value-green { color: var(--accent-green); }
+        .value-red { color: var(--accent-red); }
+
+        /* التنسيق الرئيسي */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* مدخلات وحقول النموذج */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            background: #0f172a;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-blue);
+        }
+
+        button {
+            background: var(--accent-blue);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* حقول المحول المباشر */
+        .converter-box {
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            margin-bottom: 10px;
+        }
+
+        /* قائمة المعاملات والدفتر */
+        .list-container {
+            list-style: none;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        .item-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid var(--card-border);
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .item-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .item-note {
+            font-size: 0.8rem;
+            color: var(--accent-amber);
+        }
+
+        .item-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-pending { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); }
+        .badge-paid { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            width: auto;
+        }
+
+        .btn-pay { background: var(--accent-green); }
+        .btn-delete { background: transparent; color: var(--text-muted); }
+        .btn-delete:hover { color: var(--accent-red); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>مدير الأموال والدفتر الذكي</h1>
+        <p>متابعة النقدية والديون المربوطة بالرصيد الإجمالي تلقائياً</p>
+    </header>
+
+    <!-- شريط حالة أسعار الصرف الحية -->
+    <div class="rate-bar">
+        <div class="rate-status">
+            <span class="dot" id="rateDot"></span>
+            <span id="rateStatusText">جاري جلب أسعار الصرف بواسطة API...</span>
+        </div>
+        <div id="liveRateDisplay">1 دولار = 3.75 ريال | 1 دولار = -- ج.م</div>
+    </div>
+
+    <!-- كروت الرصيد الإجمالي -->
+    <div class="overview-grid">
+        <div class="card">
+            <div class="card-title">الرصيد بالدولار <i class="fa-solid fa-dollar-sign"></i></div>
+            <div class="card-value value-blue" id="totalUSD">$0.00</div>
+        </div>
+        <div class="card">
+            <div class="card-title">الرصيد بالريال <i class="fa-solid fa-coins"></i></div>
+            <div class="card-value value-purple" id="totalSAR">0.00 ر.س</div>
+        </div>
+        <div class="card">
+            <div class="card-title">الرصيد بالجنيه <i class="fa-solid fa-money-bill-wave"></i></div>
+            <div class="card-value value-amber" id="totalLE">0.00 ج.م</div>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        
+        <!-- العمود الأيمن: تعديل الرصيد + الدفتر اليدوي -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- نموذج تعديل الرصيد المباشر (+ / -) -->
+            <div class="card" style="border-right: 4px solid var(--accent-blue);">
+                <h3 style="margin-bottom: 12px; font-size: 1.1rem; color: var(--accent-blue);">
+                    <i class="fa-solid fa-arrows-up-down-left-right"></i> تعديل مباشر للرصيد (+ / -)
+                </h3>
+                <form id="balanceForm">
+                    <div class="form-group">
+                        <label for="actionType">العملية</label>
+                        <select id="actionType">
+                            <option value="add">إضافة مبلغ للرصيد (+)</option>
+                            <option value="remove">خصم / سحب من الرصيد (-)</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label for="directAmount">المبلغ</label>
+                            <input type="number" step="0.01" id="directAmount" placeholder="0.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="directCurrency">العملة</label>
+                            <select id="directCurrency">
+                                <option value="USD">دولار ($)</option>
+                                <option value="SAR">ريال (ر.س)</option>
+                                <option value="LE">جنيه (ج.م)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="directReason">السبب / البيان</label>
+                        <input type="text" id="directReason" placeholder="مثال: شحن رصيد، مصاريف عامة" required>
+                    </div>
+
+                    <button type="submit" style="background: var(--accent-blue);">تحديث الرصيد</button>
+                </form>
+            </div>
+
+            <!-- نموذج إضافة مدفوعات للدفتر اليدوي (Notebook Entry) -->
+            <div class="card" style="border-right: 4px solid var(--accent-amber);">
+                <h3 style="margin-bottom: 12px; font-size: 1.1rem; color: var(--accent-amber);">
+                    <i class="fa-solid fa-book-bookmark"></i> إضافة للدفتر اليدوي
+                </h3>
+                <form id="notebookForm">
+                    <div class="form-group">
+                        <label for="payee">اسم الشخص / الجهة المدفوع لها</label>
+                        <input type="text" id="payee" placeholder="مثال: أحمد، أجر المحل" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label for="noteAmount">المبلغ</label>
+                            <input type="number" step="0.01" id="noteAmount" placeholder="0.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="noteCurrency">العملة</label>
+                            <select id="noteCurrency">
+                                <option value="USD">دولار ($)</option>
+                                <option value="SAR">ريال (ر.س)</option>
+                                <option value="LE">جنيه (ج.م)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payStatus">حالة الدفع</label>
+                        <select id="payStatus">
+                            <option value="paid">تم السداد نقدياً (يخصم فوراً من الرصيد)</option>
+                            <option value="pending">مستحق / مؤجل (لا يخصم حتى تقوم بالسداد)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notebookNotes">ملاحظة</label>
+                        <textarea id="notebookNotes" placeholder="تفاصيل إضافية..."></textarea>
+                    </div>
+
+                    <button type="submit" style="background: var(--accent-amber); color: #000;">تسجيل في الدفتر</button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- العمود الأيسر: الدفتر اليدوي وسجل المعاملات + المحول -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- سجل دفتر المدفوعات والديون -->
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--accent-amber);">
+                    <i class="fa-solid fa-address-book"></i> دفتر المدفوعات والالتزامات
+                </h3>
+                <div class="list-container" id="notebookList">
+                    <!-- سيتم إدراج عناصر الدفتر هنا -->
+                </div>
+            </div>
+
+            <!-- محول العملات المباشر -->
+            <div class="card">
+                <h3 style="margin-bottom: 12px; font-size: 1.1rem;"><i class="fa-solid fa-repeat"></i> محول العملات المباشر</h3>
+                
+                <div class="converter-box">
+                    <label>المبلغ بالدولار ($)</label>
+                    <input type="number" id="usdInput" placeholder="0.00" oninput="convertCurrency('USD')">
+                </div>
+
+                <div class="converter-box">
+                    <label>المبلغ بالريال (ر.س)</label>
+                    <input type="number" id="sarInput" placeholder="0.00" oninput="convertCurrency('SAR')">
+                </div>
+
+                <div class="converter-box">
+                    <label>المبلغ بالجنيه المصري (ج.م)</label>
+                    <input type="number" id="leInput" placeholder="0.00" oninput="convertCurrency('LE')">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const API_KEY = "F73cd78b71-c4372d35a9-til2sq";
+    let RATES = { USD: 1, SAR: 3.75, LE: 48.50 };
+
+    let transactions = JSON.parse(localStorage.getItem('arabic_money_mgr_transactions')) || [];
+    let notebookEntries = JSON.parse(localStorage.getItem('arabic_money_notebook')) || [];
+
+    async function fetchLiveRates() {
+        const statusText = document.getElementById('rateStatusText');
+        const rateDot = document.getElementById('rateDot');
+        const liveDisplay = document.getElementById('liveRateDisplay');
+
+        try {
+            let response = await fetch(`https://api.exchangerate-api.com/v4/latest/USD?apiKey=${API_KEY}`);
+            if (!response.ok) response = await fetch(`https://open.er-api.com/v6/latest/USD`);
+            const data = await response.json();
+
+            if (data && (data.rates || data.conversion_rates)) {
+                const rates = data.rates || data.conversion_rates;
+                RATES.SAR = rates.SAR || 3.75;
+                RATES.LE = rates.EGP || 48.50;
+
+                statusText.textContent = `محدث بواسطة API (${new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})})`;
+                rateDot.style.backgroundColor = 'var(--accent-green)';
+                liveDisplay.textContent = `1 دولار = ${RATES.SAR.toFixed(2)} ر.س | 1 دولار = ${RATES.LE.toFixed(2)} ج.م`;
+                
+                renderUI();
+            }
+        } catch (error) {
+            statusText.textContent = 'تصفح بدون إنترنت (أسعار مسجلة)';
+            rateDot.style.backgroundColor = 'var(--accent-amber)';
+            liveDisplay.textContent = `1 دولار = ${RATES.SAR.toFixed(2)} ر.س | 1 دولار = ${RATES.LE.toFixed(2)} ج.م`;
+        }
+    }
+
+    function convertCurrency(source) {
+        const usdInput = document.getElementById('usdInput');
+        const sarInput = document.getElementById('sarInput');
+        const leInput = document.getElementById('leInput');
+
+        let baseInUSD = 0;
+        if (source === 'USD') {
+            baseInUSD = parseFloat(usdInput.value) || 0;
+            sarInput.value = usdInput.value ? (baseInUSD * RATES.SAR).toFixed(2) : '';
+            leInput.value = usdInput.value ? (baseInUSD * RATES.LE).toFixed(2) : '';
+        } else if (source === 'SAR') {
+            const sarVal = parseFloat(sarInput.value) || 0;
+            baseInUSD = sarVal / RATES.SAR;
+            usdInput.value = sarInput.value ? baseInUSD.toFixed(2) : '';
+            leInput.value = sarInput.value ? (baseInUSD * RATES.LE).toFixed(2) : '';
+        } else if (source === 'LE') {
+            const leVal = parseFloat(leInput.value) || 0;
+            baseInUSD = leVal / RATES.LE;
+            usdInput.value = leVal ? baseInUSD.toFixed(2) : '';
+            sarInput.value = leVal ? (baseInUSD * RATES.SAR).toFixed(2) : '';
+        }
+    }
+
+    // Direct Add/Remove Balance Adjustment
+    document.getElementById('balanceForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const action = document.getElementById('actionType').value;
+        const amount = parseFloat(document.getElementById('directAmount').value);
+        const currency = document.getElementById('directCurrency').value;
+        const reason = document.getElementById('directReason').value;
+
+        transactions.push({
+            id: Date.now(),
+            type: action === 'add' ? 'income' : 'expense',
+            description: reason,
+            originalAmount: amount,
+            currency: currency,
+            date: new Date().toLocaleDateString('ar-EG')
+        });
+
+        saveAndRender();
+        document.getElementById('directAmount').value = '';
+        document.getElementById('directReason').value = '';
+    });
+
+    // Add entry to Notebook
+    document.getElementById('notebookForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const payee = document.getElementById('payee').value;
+        const amount = parseFloat(document.getElementById('noteAmount').value);
+        const currency = document.getElementById('noteCurrency').value;
+        const status = document.getElementById('payStatus').value;
+        const notes = document.getElementById('notebookNotes').value.trim();
+
+        const noteId = Date.now();
+        const newNote = {
+            id: noteId,
+            payee,
+            amount,
+            currency,
+            status,
+            notes,
+            date: new Date().toLocaleDateString('ar-EG')
+        };
+
+        notebookEntries.push(newNote);
+
+        // If paid immediately, subtract from balance directly
+        if (status === 'paid') {
+            transactions.push({
+                id: noteId + '_tx',
+                notebookRef: noteId,
+                type: 'expense',
+                description: `دفتر: مدفوع لـ (${payee})`,
+                originalAmount: amount,
+                currency: currency,
+                date: new Date().toLocaleDateString('ar-EG')
+            });
+        }
+
+        saveAndRender();
+        document.getElementById('payee').value = '';
+        document.getElementById('noteAmount').value = '';
+        document.getElementById('notebookNotes').value = '';
+    });
+
+    // Pay notebook entry -> Auto deduct from balance
+    function markAsPaid(id) {
+        const item = notebookEntries.find(entry => entry.id === id);
+        if (item && item.status !== 'paid') {
+            item.status = 'paid';
+            
+            transactions.push({
+                id: Date.now(),
+                notebookRef: id,
+                type: 'expense',
+                description: `سداد دفتر: (${item.payee})`,
+                originalAmount: item.amount,
+                currency: item.currency,
+                date: new Date().toLocaleDateString('ar-EG')
+            });
+
+            saveAndRender();
+        }
+    }
+
+    // Delete notebook entry -> Auto refund balance if it was paid
+    function deleteNotebookItem(id) {
+        notebookEntries = notebookEntries.filter(item => item.id !== id);
+        transactions = transactions.filter(tx => tx.notebookRef !== id);
+        saveAndRender();
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('arabic_money_mgr_transactions', JSON.stringify(transactions));
+        localStorage.setItem('arabic_money_notebook', JSON.stringify(notebookEntries));
+        renderUI();
+    }
+
+    function renderUI() {
+        const nbList = document.getElementById('notebookList');
+        nbList.innerHTML = '';
+
+        if (notebookEntries.length === 0) {
+            nbList.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 15px;">الدفتر فارغ حالياً.</p>';
+        }
+
+        notebookEntries.slice().reverse().forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'item-card';
+
+            let symbol = item.currency === 'SAR' ? 'ر.س' : item.currency === 'LE' ? 'ج.م' : '$';
+            let badgeClass = item.status === 'paid' ? 'badge-paid' : 'badge-pending';
+            let statusText = item.status === 'paid' ? 'تم الدفع (مخصوم)' : 'مستحق / غير مدفوع';
+
+            div.innerHTML = `
+                <div class="item-info">
+                    <span class="item-title">${item.payee}</span>
+                    <span class="item-meta">${item.date} • <span class="badge ${badgeClass}">${statusText}</span></span>
+                    ${item.notes ? `<span class="item-note"><i class="fa-regular fa-note-sticky"></i> ${item.notes}</span>` : ''}
+                </div>
+                <div class="action-btns">
+                    <span style="font-weight: 700;">${item.amount.toFixed(2)} ${symbol}</span>
+                    ${item.status === 'pending' ? `<button class="btn-sm btn-pay" onclick="markAsPaid(${item.id})">سداد</button>` : ''}
+                    <button class="btn-delete" onclick="deleteNotebookItem(${item.id})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `;
+            nbList.appendChild(div);
+        });
+
+        // Compute active cash balance
+        let totalUSD = 0;
+        transactions.forEach(t => {
+            let amountInUSD = t.originalAmount;
+            if (t.currency === 'SAR') amountInUSD = t.originalAmount / RATES.SAR;
+            if (t.currency === 'LE') amountInUSD = t.originalAmount / RATES.LE;
+
+            if (t.type === 'income') totalUSD += amountInUSD;
+            else totalUSD -= amountInUSD;
+        });
+
+        document.getElementById('totalUSD').textContent = `$${totalUSD.toFixed(2)}`;
+        document.getElementById('totalSAR').textContent = `${(totalUSD * RATES.SAR).toFixed(2)} ر.س`;
+        document.getElementById('totalLE').textContent = `${(totalUSD * RATES.LE).toFixed(2)} ج.م`;
+    }
+
+    fetchLiveRates();
+</script>
+
+</body>
+</html>
